@@ -91,7 +91,7 @@ namespace PokemonAPI.Controllers
         [ProducesResponseType(typeof(PokemonModel), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
         [Authorize]
-        public async Task<ActionResult<List<PokemonModel>>> RecoverPokemon(int page, int maxResults, [FromQuery] string name)
+        public async Task<ActionResult<List<PokemonModel>>> FindPokemon(int page, int maxResults, [FromQuery] string name)
         {
 
             using var reader = new StreamReader($"{Environment.CurrentDirectory}\\database.json");
@@ -101,19 +101,16 @@ namespace PokemonAPI.Controllers
             var setLastId = data.OrderBy(x => x.Id).Last().Id + 1;
             var upperWord = name.ToUpper();
 
-            var result = data.Where(x => x.Name.Contains(upperWord));
+            var result = data.Where(x => x.Name.Contains(upperWord)).ToList().OrderBy(x => x.Id);
 
-            var filteredData = result;
+            var filteredData = result.ToList();
 
-            if (!string.IsNullOrWhiteSpace(name))
-                filteredData = result.Where(x => x.Type.Contains(upperWord)).ToList();
-            else
+            var finalResult = filteredData.ToString();
+
+            if (string.IsNullOrWhiteSpace(name) || filteredData.Count() == 0)
                 return BadRequest("Pokémon não encontrado");
 
-            if(filteredData.Count() == 0)
-                return BadRequest("Pokémon não encontrado");
-
-            return Ok(_repository.RecoverPokemon(upperWord, page, maxResults));
+            return Ok(_repository.FindPokemon(upperWord, page, maxResults));
 
         }
 

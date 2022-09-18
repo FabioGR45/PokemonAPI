@@ -71,7 +71,6 @@ namespace PokemonAPI.Repositories
             return character;
         }
 
-
         public List<PokemonModel> RecoverPokemon(string name, int page, int maxResults)
         {
             var desserialized = JsonSerializer.Deserialize<List<PokemonModel>>(File.ReadAllText(_databaseFile));
@@ -83,6 +82,24 @@ namespace PokemonAPI.Repositories
             var finalResult = response.Where(x => x.Name.Contains(name)).ToList().OrderBy(x => x.Id);
 
             return finalResult.ToList();
+        }
+
+        public List<PokemonModel> FindPokemon(string name, int page, int maxResults)
+        {
+            using var reader = new StreamReader($"{Environment.CurrentDirectory}\\database.json");
+            var json = reader.ReadToEnd();
+            var data = JsonSerializer.Deserialize<List<PokemonModel>>(json);
+
+            var upperWord = name.ToUpper();
+
+            var result = data.Where(x => x.Name.Contains(upperWord)).ToList().OrderBy(x => x.Id);
+
+            var filteredData = result.ToList();
+
+            if (!string.IsNullOrWhiteSpace(name))
+                filteredData = result.Where(x => x.Name.Contains(upperWord)).ToList();
+
+            return filteredData;
         }
 
         public PokemonModel PutPoke(int id, PokemonDto entity)
